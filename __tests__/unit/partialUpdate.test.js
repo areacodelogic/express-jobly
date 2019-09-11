@@ -6,8 +6,8 @@ describe("partialUpdate()", () => {
         const { query, values} = sqlForPartialUpdate(
           "companies",
           {name: "testname"},
-          "name",
-          "handle"
+          "handle",
+          "name"
         )
       
 

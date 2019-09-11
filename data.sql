@@ -4,5 +4,5 @@ CREATE TABLE companies
     name text NOT NULL,
     num_employees integer,
     description text,
-    logo_rul text 
+    logo_url text 
 );
