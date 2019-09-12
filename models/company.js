@@ -12,6 +12,7 @@ class Company {
         let baseQuery = `SELECT handle, name, num_employees, description, logo_url FROM companies`
         let queries = [];
         let values = [];
+        let searchTerms = Object.keys(data).length > 0;
 
         if (+data.min_employees && +data.max_employees) {
             if (+data.min_employees > +data.max_employees) {
@@ -19,7 +20,7 @@ class Company {
             }
         }
 
-        if (Object.keys(data).length > 0) {
+        if (searchTerms) {
             let count = 0;
 
             if (data.min_employees) {
