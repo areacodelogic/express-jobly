@@ -89,6 +89,13 @@ class Company {
         WHERE handle=$1`, [handle]
         );
 
+         if (result.rows.length === 0) {
+           throw {
+             message: `There is no company with handle '${handle}`,
+             status: 404
+           };
+         }
+
         return result.rows[0];
     }
 
@@ -97,7 +104,29 @@ class Company {
         console.log(company);
         const result = await db.query(company.query, company.values);
         console.log(result);
+        
+        if (result.rows.length === 0) {
+            throw {
+                message: `There is no company with handle '${handle}`,
+                status: 404
+            };
+        }
         return result.rows[0];
+    }
+
+    static async delete(handle){
+
+        const result = await db.query(`
+            DELETE from companies
+            WHERE handle = $1
+            RETURNING handle`, [handle]);
+
+         if (result.rows.length === 0) {
+           throw {
+             message: `There is no company with handle '${handle}`,
+             status: 404
+           };
+         }
     }
 }
 
