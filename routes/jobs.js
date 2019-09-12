@@ -5,10 +5,6 @@ const jsonschema = require("jsonschema");
 const jobsschema = require("../schemas/jobsSchema.json");
 const ExpressError = require("../expressError");
 
-
-
-
-
 router.post("/", async function(req, res, next) {
   try {
     const result = jsonschema.validate(req.body, jobsschema);
@@ -35,22 +31,21 @@ router.get("/", async function(req, res, next) {
   }
 });
 
-
-router.get("/:id", async function(req, res, next){
-	try {
-			const { id } = req.params;
-			const job = await Job.findJob(id);
-			return res.json({ job });
-    } catch (error) {
-        return next(error)
-    }
+router.get("/:id", async function(req, res, next) {
+  try {
+    const { id } = req.params;
+    const job = await Job.findJob(id);
+    return res.json({ job });
+  } catch (error) {
+    return next(error);
+  }
 });
 
-router.patch("/:id", async function(req, res, next){
-try {
-    const result = jsonschema.validate(req.body, jobsschema)
+router.patch("/:id", async function(req, res, next) {
+  try {
+    const result = jsonschema.validate(req.body, jobsschema);
 
-    if(!result.valid){
+    if (!result.valid) {
       let listOfErrors = result.errors.map(err => err.stack);
       let error = new ExpressError(listOfErrors, 400);
       return next(error);
@@ -63,9 +58,7 @@ try {
   } catch (error) {
     return next(error);
   }
-
-})
-
+});
 
 router.delete("/:id", async function(req, res, next) {
   try {
@@ -76,10 +69,5 @@ router.delete("/:id", async function(req, res, next) {
     return next(error);
   }
 });
-
-
-
-    
-
 
 module.exports = router;

@@ -3,7 +3,6 @@ process.env.NODE_ENV = "test";
 const request = require("supertest");
 const app = require("../../app");
 const db = require("../../db");
-const Company = require("../../models/company");
 let company1;
 
 describe("Company Route Tests", function () {

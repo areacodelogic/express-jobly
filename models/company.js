@@ -1,64 +1,65 @@
-const db = require('../db');
+const db = require("../db");
 const ExpressError = require("../expressError");
 const sqlForPartialUpdate = require("../helpers/partialUpdate");
 
 class Company {
+  static async findAll(data) {
+    let min_employees;
+    let max_employees;
+    let baseQuery = `SELECT handle, name, num_employees, description, logo_url FROM companies`;
+    let queries = [];
+    let values = [];
+    let searchTerms = Object.keys(data).length > 0;
 
-
-
-    static async findAll(data) {
-        let min_employees;
-        let max_employees;
-        let baseQuery = `SELECT handle, name, num_employees, description, logo_url FROM companies`
-        let queries = [];
-        let values = [];
-        let searchTerms = Object.keys(data).length > 0;
-
-        if (+data.min_employees && +data.max_employees) {
-            if (+data.min_employees > +data.max_employees) {
-                throw new ExpressError("Minimum employees can not be greater than maxinum employees", 400)
-            }
-        }
-
-        if (searchTerms) {
-            let count = 0;
-
-            if (data.min_employees) {
-                min_employees = +data.min_employees;
-                values.push(min_employees);
-                let minQuery = `num_employees >= $`;
-                queries.push(minQuery);
-            }
-
-            if (data.max_employees) {
-                max_employees = +data.max_employees;
-                values.push(max_employees);
-                let maxQuery = `num_employees <= $`;
-                queries.push(maxQuery);
-            }
-
-            if (data.search) {
-                let search = data.search;
-                values.push(search);
-                let searchQuery = `name ILIKE $`;
-                queries.push(searchQuery);
-            }
-            baseQuery = baseQuery + " " + "WHERE";
-            for (let query of queries) {
-                count += 1;
-                baseQuery += (" " + query + `${count}` + " " + "AND");
-            }
-            baseQuery = baseQuery.slice(0, -4);
-            let companies = await db.query(baseQuery, values);
-            return companies.rows;
-        } else {
-            let companies = await db.query(baseQuery);
-            return companies.rows;
-        }
+    if (+data.min_employees && +data.max_employees) {
+      if (+data.min_employees > +data.max_employees) {
+        throw new ExpressError(
+          "Minimum employees can not be greater than maxinum employees",
+          400
+        );
+      }
     }
 
-    static async create(data) {
-        const result = await db.query(`
+    if (searchTerms) {
+      let count = 0;
+
+      if (data.min_employees) {
+        min_employees = +data.min_employees;
+        values.push(min_employees);
+        let minQuery = `num_employees >= $`;
+        queries.push(minQuery);
+      }
+
+      if (data.max_employees) {
+        max_employees = +data.max_employees;
+        values.push(max_employees);
+        let maxQuery = `num_employees <= $`;
+        queries.push(maxQuery);
+      }
+
+      if (data.search) {
+        let search = data.search;
+        values.push(search);
+        let searchQuery = `name ILIKE $`;
+        queries.push(searchQuery);
+      }
+      baseQuery = baseQuery + " " + "WHERE";
+      for (let query of queries) {
+        count += 1;
+        baseQuery += " " + query + `${count}` + " " + "AND";
+      }
+      baseQuery = baseQuery.slice(0, -4);
+      let companies = await db.query(baseQuery, values);
+      return companies.rows;
+    } else {
+      let companies = await db.query(baseQuery);
+      return companies.rows;
+    }
+  }
+
+  static async create(data) {
+    const result = await db.query(
+      `
         INSERT INTO companies (
             handle,
             name,
@@ -73,58 +74,57 @@ class Company {
         description,
         logo_url
         `,
-            [data.handle,
-            data.name,
-            data.num_employees,
-            data.description,
-            data.logo_url]
-        );
+      [
+        data.handle,
+        data.name,
+        data.num_employees,
+        data.description,
+        data.logo_url
+      ]
+    );
 
-        return result.rows[0];
+    return result.rows[0];
+  }
+
+  // ADDDD get companies join with jobs for company
+
+  static async findCompany(handle) {
+    const result = await db.query(
+      ` SELECT handle, name, num_employees, description, logo_url
+        FROM companies
+        WHERE handle=$1`,
+      [handle]
+    );
+
+    if (result.rows.length === 0) {
+      throw new ExpressError(`There is no company with handle '${handle}`, 404);
     }
 
-    static async findCompany(handle) {
-        const result = await db.query(`
-            SELECT handle, name, num_employees, description, logo_url
-            FROM companies
-            WHERE handle=$1`, [handle]
-        );
+    return result.rows[0];
+  }
 
-        if (result.rows.length === 0) {
-            throw new ExpressError(`There is no company with handle '${handle}`, 404)
-        }
+  static async update(handle, data) {
+    const company = sqlForPartialUpdate("companies", data, "handle", handle);
+    const result = await db.query(company.query, company.values);
 
-        return result.rows[0];
+    if (result.rows.length === 0) {
+      throw new ExpressError(`There is no company with handle '${handle}`, 404);
     }
+    return result.rows[0];
+  }
 
-    static async update(handle, data) {
-        const company = sqlForPartialUpdate("companies", data, "handle", handle);
-        const result = await db.query(company.query, company.values);
+  static async delete(handle) {
+    const result = await db.query(
+      ` DELETE from companies
+        WHERE handle = $1
+        RETURNING handle`,
+      [handle]
+    );
 
-        if (result.rows.length === 0) {
-            throw {
-                message: `There is no company with handle '${handle}`,
-                status: 404
-            };
-        }
-        return result.rows[0];
+    if (result.rows.length === 0) {
+      throw new ExpressError(`There is no company with handle '${handle}`, 404);
     }
-
-    static async delete(handle) {
-
-        const result = await db.query(`
-            DELETE from companies
-            WHERE handle = $1
-            RETURNING handle`, [handle]);
-
-        if (result.rows.length === 0) {
-            throw {
-                message: `There is no company with handle '${handle}`,
-                status: 404
-            };
-        }
-    }
+  }
 }
-
 
 module.exports = Company;
