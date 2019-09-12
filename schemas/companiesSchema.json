@@ -4,23 +4,7 @@
     "$id": "http://example.com/root.json",
     "type": "object",
     "title": "The Root Schema",
-    "required": [
-        "handle",
-        "name"
-    ],
     "properties": {
-        "handle": {
-            "$id": "#/properties/handle",
-            "type": "string",
-            "title": "The Handle Schema",
-            "default": "",
-            "examples": [
-                "spt"
-            ],
-            "minLength": 3,
-            "maxLength": 3,
-            "pattern": "^(.*)$"
-        },
         "name": {
             "$id": "#/properties/name",
             "type": "string",

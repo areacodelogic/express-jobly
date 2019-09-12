@@ -9,12 +9,12 @@ class Company {
     static async findAll(data) {
         let min_employees;
         let max_employees;
-        let baseQuery = `SELECT name FROM companies`
+        let baseQuery = `SELECT handle, name, num_employees, description, logo_url FROM companies`
         let queries = [];
         let values = [];
 
-        if (data.min_employees && data.max_employees) {
-            if (data.min_employees >= data.max_employees) {
+        if (+data.min_employees && +data.max_employees) {
+            if (+data.min_employees > +data.max_employees) {
                 throw new ExpressError("Minimum employees can not be greater than maxinum employees", 400)
             }
         }
@@ -84,27 +84,22 @@ class Company {
 
     static async findCompany(handle) {
         const result = await db.query(`
-        SELECT handle, name, num_employees, description, logo_url
-        FROM companies
-        WHERE handle=$1`, [handle]
+            SELECT handle, name, num_employees, description, logo_url
+            FROM companies
+            WHERE handle=$1`, [handle]
         );
 
-         if (result.rows.length === 0) {
-           throw {
-             message: `There is no company with handle '${handle}`,
-             status: 404
-           };
-         }
+        if (result.rows.length === 0) {
+            throw new ExpressError(`There is no company with handle '${handle}`, 404)
+        }
 
         return result.rows[0];
     }
 
     static async update(handle, data) {
-        let company = sqlForPartialUpdate("companies", data, "handle", handle);
-        console.log(company);
+        const company = sqlForPartialUpdate("companies", data, "handle", handle);
         const result = await db.query(company.query, company.values);
-        console.log(result);
-        
+
         if (result.rows.length === 0) {
             throw {
                 message: `There is no company with handle '${handle}`,
@@ -114,19 +109,19 @@ class Company {
         return result.rows[0];
     }
 
-    static async delete(handle){
+    static async delete(handle) {
 
         const result = await db.query(`
             DELETE from companies
             WHERE handle = $1
             RETURNING handle`, [handle]);
 
-         if (result.rows.length === 0) {
-           throw {
-             message: `There is no company with handle '${handle}`,
-             status: 404
-           };
-         }
+        if (result.rows.length === 0) {
+            throw {
+                message: `There is no company with handle '${handle}`,
+                status: 404
+            };
+        }
     }
 }
 

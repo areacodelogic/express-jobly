@@ -12,21 +12,17 @@ const ExpressError = require("../expressError")
 router.get("/", async function(req, res, next){
 
   try {
-
     const companies = await Company.findAll(req.query);
-
-    return res.json({companies})
-      
+    return res.json({companies});
   } catch (error) {
-      return next(error)
+      return next(error);
   }
-
-})
+});
 
 router.post("/", async function(req, res, next) {
   try {
-
     const result = jsonschema.validate(req.body, companyschema);
+
     if (!result.valid) {
       let listOfErrors = result.errors.map(err => err.stack);
       let error = new ExpressError(listOfErrors, 400);
@@ -34,7 +30,7 @@ router.post("/", async function(req, res, next) {
     }
 
     const company = await Company.create(req.body);
-    return res.json({ company });
+    return res.json({ company }, 201);
 
   } catch (error) {
     return next(error);
@@ -43,12 +39,9 @@ router.post("/", async function(req, res, next) {
 
 router.get("/:handle", async function(req, res, next) {
   try {
-    
-    const handle = req.params.handle;
-
+    const { handle } = req.params;
     const company = await Company.findCompany(handle);
     return res.json({ company });
-
   } catch (error) {
     return next(error);
   }
@@ -57,6 +50,7 @@ router.get("/:handle", async function(req, res, next) {
 router.patch("/:handle", async function(req, res, next) {
   try {
     const result = jsonschema.validate(req.body, companyschema)
+
     if(!result.valid){
       let listOfErrors = result.errors.map(err => err.stack);
       let error = new ExpressError(listOfErrors, 400);
@@ -64,7 +58,8 @@ router.patch("/:handle", async function(req, res, next) {
     }
 
     const handle = req.params.handle;
-    company = await Company.update(handle, req.body.company);
+    company = await Company.update(handle, req.body);
+
     return res.json({ company });
   } catch (error) {
     return next(error);
@@ -73,10 +68,9 @@ router.patch("/:handle", async function(req, res, next) {
 
 router.delete("/:handle", async function(req, res, next){
   try {
-    const handle = req.params.handle;
-
+    const { handle } = req.params;
     company = await Company.delete(handle);
-    return res.json({message: "company deleted"});
+    return res.json({message: "Company deleted."});
   } catch (error) {
     return next(error)
   }
